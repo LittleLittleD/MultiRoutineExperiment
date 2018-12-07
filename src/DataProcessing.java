@@ -77,9 +77,9 @@ public class DataProcessing {
 
 		if (users.containsKey(name)) {
 			// 类Administrator、Operator和Browser编制完成后，此处代码不再报错
-			if (role.equalsIgnoreCase("administrator"))
+			if (role.equalsIgnoreCase("Administrator"))
 				user = new Administrator(name, password, "Administrator");
-			else if (role.equalsIgnoreCase("operator"))
+			else if (role.equalsIgnoreCase("Operator"))
 				user = new Operator(name, password, "Operator");
 			else
 				user = new Browser(name, password, "Browser");
@@ -98,10 +98,10 @@ public class DataProcessing {
 			return false;
 		else {
 			// 类Administrator、Operator和Browser编制完成后，此处代码不再报错
-			if (role.equalsIgnoreCase("administrator"))
-				user = new Administrator(name, password, "administrator");
-			else if (role.equalsIgnoreCase("operator"))
-				user = new Operator(name, password, "operator");
+			if (role.equalsIgnoreCase("Administrator"))
+				user = new Administrator(name, password, "Administrator");
+			else if (role.equalsIgnoreCase("Operator"))
+				user = new Operator(name, password, "Operator");
 			else
 				user = new Browser(name, password, "Browser");
 			users.put(name, user);
@@ -121,10 +121,12 @@ public class DataProcessing {
 	}
 
 	// 通过名字查找用户
-	public static boolean searchByName(String name) {
-		if (users.containsKey(name))
-			return true;
-		return false;
+	public static User searchByName(String name) {
+		if (users.containsKey(name)) {
+			User temp = users.get(name);
+			return temp;
+		} else
+			return null;
 	}
 
 	// 实验三：实现此功能

@@ -9,7 +9,6 @@ public class Main {
 			System.out.println(dataE.getMessage() + "软件初始化失败.");
 			return;
 		} catch (IOException e) {
-			e.printStackTrace();
 			System.out.println("数据库文件未找到,软件初始化失败！");
 			return;
 		}

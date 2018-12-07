@@ -1,5 +1,5 @@
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -25,8 +25,18 @@ public class Operator extends User {
 		System.out.print("上传文件");
 		System.out.println("*********************");
 
+		// 正确得到文件路径
 		System.out.println("请输入文件存储路径:");
 		fileSorcTrace = in.nextLine();
+		File saveFile = new File(fileSorcTrace);
+		while (saveFile.exists() == false) {
+			System.out.println("文件路径错误!");
+			System.out.println("请重新输入文件存储路径(输入回车以退出操作):");
+			fileSorcTrace = in.nextLine();
+			if (fileSorcTrace.length() == 0)
+				return;
+			saveFile = new File(fileSorcTrace);
+		}
 
 		try {
 			creator = getName();
@@ -34,9 +44,9 @@ public class Operator extends User {
 			ID = (new Integer(DataProcessing.getDocNumber())).toString();
 			filename = fileSorcTrace.substring(fileSorcTrace.lastIndexOf('\\') + 1);
 			System.out.print("请输入对该文件的描述(输入回车跳过):");
-			if ((description = in.nextLine()).length() == 0 )
+			if ((description = in.nextLine()).length() == 0)
 				description = "(上传者未写填写描述)";
-			FileInputStream fileInput = new FileInputStream(fileSorcTrace);
+			FileInputStream fileInput = new FileInputStream(saveFile);
 			FileOutputStream fileOutput = new FileOutputStream(
 					fileSever + ID + filename.substring(filename.lastIndexOf('.')));
 			FileChannel readFileChannel = fileInput.getChannel();
@@ -45,9 +55,7 @@ public class Operator extends User {
 			DataProcessing.insertDoc(ID, creator, timestamp, description, filename);
 			fileInput.close();
 			fileOutput.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("文件路径错误,文件打开失败");
-			return;
+
 		} catch (IOException e) {
 			System.out.println("上传失败");
 			return;

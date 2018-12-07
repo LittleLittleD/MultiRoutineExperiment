@@ -50,17 +50,25 @@ public abstract class User {
 		System.out.print("*********************");
 		System.out.print("下载文件");
 		System.out.println("*********************");
-		System.out.print("请输入文件ID:");
 
+		// 正确得到文档ID
+		System.out.print("请输入文件ID:");
 		fileID = in.nextLine();
-		if ((fileInfo = DataProcessing.searchDoc(fileID)) == null) {
+		while (fileID.length() == 0)
+			fileID = in.nextLine();
+		
+		while ((fileInfo = DataProcessing.searchDoc(fileID)) == null) {
 			System.out.println("ID错误,找不到该文件!");
-			return false;
+			System.out.print("请重新输入文件ID(输入回车以退出):");
+			fileID = in.nextLine();
+			if (fileID.length() == 0)
+				return false;
 		}
 
 		System.out.print("请输入文件存储路径:" + "(输入回车则选择默认路径D:\\Files)");
 		if ((fileSaveTrace = in.nextLine()).length() == 0)
 			fileSaveTrace = "d:\\Files\\";
+
 		try {
 			File file = new File(fileSaveTrace + fileInfo.getFilename());
 			file.createNewFile();
@@ -97,8 +105,29 @@ public abstract class User {
 		System.out.print("*********************");
 		System.out.print("修改密码");
 		System.out.println("*********************");
+
+		// 正确得到密码
 		System.out.print("请输入新的密码:");
 		String newPassword = in.nextLine();
+		while (newPassword.length() == 0)
+			newPassword = in.nextLine();
+
+		System.out.print("请再输入一次新的密码以确认:");
+		String newPasswordCopy = in.nextLine();
+		while (newPasswordCopy.length() == 0)
+			newPasswordCopy = in.nextLine();
+
+		while (newPassword.equals(newPasswordCopy) == false) {
+			System.out.print("请重新输入新的密码(输入回车以退出):");
+			newPassword = in.nextLine();
+			if (newPassword.length() == 0)
+				return;
+			System.out.print("请再输入一次新的密码以确认:");
+			newPasswordCopy = in.nextLine();
+			while (newPasswordCopy.length() == 0)
+				newPasswordCopy = in.nextLine();
+		}
+
 		setPassword(newPassword);
 		System.out.println("成功修改密码");
 	}
