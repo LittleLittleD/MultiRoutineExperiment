@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,12 +10,13 @@ import java.util.*;
 public class DataProcessing {
 	static Hashtable<String, User> users;
 	static Hashtable<String, Doc> docs;
+	static String[] cookies;
 
 	// 说明: 实验二、三、四 使用此处Init()函数
 	public static void Init() throws IOException, DataException {
+		// 初始化users
 		users = new Hashtable<String, User>();
 		String name, password, role;
-
 		BufferedReader br = new BufferedReader(new FileReader("d:\\Multithreading\\user.txt"));
 		while ((name = br.readLine()) != null) {
 			password = br.readLine();
@@ -23,20 +25,49 @@ public class DataProcessing {
 				br.close();
 				throw new DataException("数据错误！");
 			}
-
-			if (role.equals("Operator"))
-				users.put(name, new Operator(name, password, role));
-			else if (role.equals("Browser"))
-				users.put(name, new Browser(name, password, role));
-			else if (role.equals("Administrator"))
-				users.put(name, new Administrator(name, password, role));
+			User user = new User(name, password, role);
+			if (role.equals("Operator") || role.equals("Browser") || role.equals("Administrator"))
+				users.put(name, user);
 			else {
 				br.close();
 				throw new DataException("数据错误！");
 			}
 		}
 		br.close();
-		// 实验三：此处编写代码，从文件file.txt中提取已经上传的文档
+
+		// 初始化cookie
+		cookies = null;
+		String savedName, savedPassword, savedState;
+		File cookieFile = new File("D:\\Multithreading\\cookie.dll"); // cookie.dll中含有用户名,密码,登陆方式
+		if (!cookieFile.exists()) {
+			cookieFile.createNewFile();
+		} else if (cookieFile.getTotalSpace() != 0) {
+			BufferedReader cookieReader = new BufferedReader(new FileReader(cookieFile));
+			if ((savedName = cookieReader.readLine()) != null) {
+				savedPassword = cookieReader.readLine();
+				savedState = cookieReader.readLine();
+				if (savedPassword == null || savedState == null || !savedState.matches("Remember|Auto")
+						|| cookieReader.readLine() != null) {
+					cookieReader.close();
+					throw new DataException("数据错误!");
+				} else {
+					User user = searchByName(savedName);
+					if (user == null) {
+						cookieReader.close();
+						throw new DataException("数据被篡改!");
+					} else {
+						cookies = new String[4];
+						cookies[0] = savedName;
+						cookies[1] = savedPassword;
+						cookies[2] = user.getRole();
+						cookies[3] = savedState;
+					}
+				}
+			}
+			cookieReader.close();
+		}
+
+		// 初始化doc
 		docs = new Hashtable<String, Doc>();
 		String ID, creator, timestamp, description, filename;
 
@@ -57,6 +88,7 @@ public class DataProcessing {
 		fileReader.close();
 	}
 
+	// 下面是用户管理功能函数
 	public static User searchUser(String name, String password) {
 		if (users.containsKey(name)) {
 			User temp = users.get(name);
@@ -72,17 +104,9 @@ public class DataProcessing {
 	}
 
 	// 更新用户信息
-	public static boolean updateUser(String name, String password, String role) throws IOException {
-		User user;
-
+	public static boolean updateUser(User user) throws IOException {
+		String name = user.getName();
 		if (users.containsKey(name)) {
-			// 类Administrator、Operator和Browser编制完成后，此处代码不再报错
-			if (role.equalsIgnoreCase("Administrator"))
-				user = new Administrator(name, password, "Administrator");
-			else if (role.equalsIgnoreCase("Operator"))
-				user = new Operator(name, password, "Operator");
-			else
-				user = new Browser(name, password, "Browser");
 			users.put(name, user);
 			updateUserFile();
 			return true;
@@ -91,19 +115,11 @@ public class DataProcessing {
 	}
 
 	// 增加新用户
-	public static boolean insertUser(String name, String password, String role) throws IOException {
-		User user;
-
+	public static boolean insertUser(User user) throws IOException {
+		String name = user.getName();
 		if (users.containsKey(name))
 			return false;
 		else {
-			// 类Administrator、Operator和Browser编制完成后，此处代码不再报错
-			if (role.equalsIgnoreCase("Administrator"))
-				user = new Administrator(name, password, "Administrator");
-			else if (role.equalsIgnoreCase("Operator"))
-				user = new Operator(name, password, "Operator");
-			else
-				user = new Browser(name, password, "Browser");
 			users.put(name, user);
 			updateUserFile();
 			return true;
@@ -129,7 +145,6 @@ public class DataProcessing {
 			return null;
 	}
 
-	// 实验三：实现此功能
 	// 将用户信息写入到文件user.txt中，实现用户信息永久保存
 	public static void updateUserFile() throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter("d:\\Multithreading\\user.txt"));
@@ -141,7 +156,6 @@ public class DataProcessing {
 		writer.close();
 	}
 
-	// 实验三：参照用户管理功能中的函数实现方法，完成这些函数的功能
 	// 下面是档案管理功能函数
 	// 找到档案号为ID的档案文件信息
 	public static Doc searchDoc(String ID) {
@@ -159,12 +173,12 @@ public class DataProcessing {
 	}
 
 	// 增加新的档案文件信息
-	public static boolean insertDoc(String ID, String creator, long timestamp, String description, String filename)
-			throws IOException {
+	public static boolean insertDoc(Doc doc) throws IOException {
+		String ID = doc.getID();
 		if (docs.containsKey(ID)) {
 			return false;
 		} else {
-			docs.put(ID, new Doc(ID, creator, timestamp, description, filename));
+			docs.put(ID, doc);
 			updateDocFile();
 			return true;
 		}
@@ -182,7 +196,23 @@ public class DataProcessing {
 		writer.close();
 	}
 
+	// 更新cookie信息
+	public static void updateCookies() throws IOException {
+		File cookieFile = new File("D:\\Multithreading\\cookie.dll");
+		if (cookies == null)
+			cookieFile.delete();
+		else {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(cookieFile));
+			writer.write(cookies[0] + "\r\n" + cookies[1] + "\r\n" + cookies[3] + "\r\n");
+			writer.close();
+		}
+	}
+
 	// 返回文件数目
+	public static int getUserNumber() {
+		return users.size();
+	}
+
 	public static int getDocNumber() {
 		return docs.size();
 	}
