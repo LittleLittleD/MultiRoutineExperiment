@@ -1,6 +1,3 @@
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 // 实验三：实现此类
 class Doc {
 	private String ID;
@@ -63,10 +60,4 @@ class Doc {
 		this.filename = filename;
 	}
 
-	public String toString() {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-		String time = simpleDateFormat.format(new Date(timestamp));
-		return "ID: " + ID + "\nCreator: " + creator + "\nTimestamp: " + time + "\nDescription: " + description
-				+ "\nFilename: " + filename;
-	}
 }
