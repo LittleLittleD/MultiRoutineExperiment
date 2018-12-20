@@ -161,11 +161,18 @@ public class FrameLogin extends JFrame {
 					login(new User(DataProcessing.cookies[0], DataProcessing.cookies[1], DataProcessing.cookies[2]));
 					return;
 				} else {
+					// 此时cookies[3]只可能是"Remember|Restart", "Auto|Restart", "Remember"
 					accountField.setText(DataProcessing.cookies[0]);
 					passwordField.setText(DataProcessing.cookies[1]);
 					rememberButton.setSelected(true);
-					if (DataProcessing.cookies[3].equals("Restart"))
-						autoLogButton.setSelected(true);
+					if ("Restart".matches(DataProcessing.cookies[3])) {
+						if ("Auto".matches(DataProcessing.cookies[3])) {
+							autoLogButton.setSelected(true);
+							DataProcessing.cookies[3] = new String("Auto");
+						} else {
+							DataProcessing.cookies[3] = new String("Remember");
+						}
+					}
 				}
 			} else {
 				JOptionPane.showMessageDialog(FrameLogin.this, "密码已发生改动,请重新填写!", "提示", JOptionPane.INFORMATION_MESSAGE);

@@ -48,7 +48,9 @@ public abstract class FrameUser extends JFrame {
 			public void actionPerformed(ActionEvent eventLogout) {
 				setVisible(false);
 				FrameLogin frameLogin = new FrameLogin();
-				DataProcessing.cookies[3] = "Restart";
+				if (DataProcessing.cookies != null) {
+					DataProcessing.cookies[3] += "|Restart";
+				}
 				frameLogin.initLoginWindow();
 			}
 		});
